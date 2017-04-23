@@ -2,42 +2,18 @@
   "name": "typescript-boilerplate",
   "version": "1.0.0",
   "description": "boilerplate for web applications using typescript and webpack",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "start": "webpack-dev-server --content-base dist",
-    "build": "rm -rf dist && webpack"
+    "build": "rm -rf lib && tsc"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "glamor": "^2.20.24",
-    "immutable": "^3.8.1",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2",
-    "react-redux": "^5.0.3",
-    "redux": "^3.6.0",
-    "redux-immutable": "^3.1.0",
-    "redux-thunk": "^2.2.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/immutable": "^3.8.7",
-    "@types/react": "^15.0.13",
-    "@types/react-dom": "^0.14.23",
-    "@types/react-redux": "^4.4.36",
-    "@types/redux": "^3.6.0",
-    "@types/redux-immutable": "^3.0.33",
-    "@types/redux-thunk": "^2.1.0",
-    "babel": "^6.23.0",
-    "babel-core": "^6.23.1",
-    "babel-loader": "^6.3.2",
-    "babel-preset-es2015": "^6.22.0",
-    "babel-preset-react": "^6.23.0",
-    "babel-preset-stage-0": "^6.22.0",
-    "html-webpack-plugin": "^2.28.0",
-    "ts-loader": "^2.0.1",
-    "typescript": "^2.2.1",
-    "webpack": "^2.2.1",
-    "webpack-dev-server": "^2.4.1"
-  }
+    "typescript": "^2.2.1"
+  },
+  "files": [
+    "lib/*"
+  ]
 }

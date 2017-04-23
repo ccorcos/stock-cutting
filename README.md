@@ -1,18 +1,12 @@
-# TypeScript Boilerplate
-
-This is a simple setup for getting started building a web application using TypeScript, React, Redux, ImmutableJS, and Glamor.
+# TypeScript Library Boilerplate
 
 ## Getting Started
 
 ```sh
-git clone git@github.com:ccorcos/typescript-boilerplate.git project
-cd project
+git clone git@github.com:ccorcos/typescript-library.git library
+cd library
 git remote remove origin
-npm install
-npm start
+npm run build
+npm version major
+npm publish
 ```
-
-## To Do
-
-- figure out how to make redux type definitions sound
-- maybe build your own sound version of redux that can use all the middleware
