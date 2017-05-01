@@ -4,7 +4,8 @@
   "description": "boilerplate for web applications using typescript and webpack",
   "main": "lib/index.js",
   "scripts": {
-    "build": "rm -rf lib && tsc"
+    "build": "rm -rf lib && tsc",
+    "watch": "rm -rf lib && tsc --watch"
   },
   "keywords": [],
   "author": "",
