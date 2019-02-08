@@ -158,9 +158,7 @@ export const howManyWays2D = (args: {
 	const cutTrees = _.flatten(
 		cuts.map(piece => {
 			const tree = cut2D(size, piece, bladeSize)
-			// console.log("cut", size, piece, tree)
 			if (!tree.pieces) {
-				console.log("NOCUT", size, piece)
 				return [tree]
 			}
 
@@ -196,8 +194,8 @@ export const howManyWays2D = (args: {
 	return _.uniqWith(
 		cutTrees,
 		(x, y) =>
-			isSubset2D(getLeafCuts(x, cuts), getLeafCuts(y, cuts)) ||
-			isSubset2D(getLeafCuts(y, cuts), getLeafCuts(x, cuts))
+			isSubset2D(getLeaves(x), getLeaves(y)) ||
+			isSubset2D(getLeaves(y), getLeaves(x))
 	)
 }
 
