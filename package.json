@@ -1,13 +1,22 @@
 {
   "name": "stock-cutting",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A program for solving the Stock Cutting Problem.",
   "main": "lib/index.js",
   "scripts": {
     "build": "rm -rf lib && tsc",
     "watch": "rm -rf lib && tsc --watch"
   },
-  "keywords": ["stock", "wood", "cutting", "cut", "knapsack", "problem", "np", "np-hard"],
+  "keywords": [
+    "stock",
+    "wood",
+    "cutting",
+    "cut",
+    "knapsack",
+    "problem",
+    "np",
+    "np-hard"
+  ],
   "author": "Chet Corcos <ccorcos@gmail.com>",
   "license": "Chets License",
   "dependencies": {
@@ -15,8 +24,8 @@
     "lodash": "^4.17.11"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/ccorcos/stock-cutting"
+    "type": "git",
+    "url": "https://github.com/ccorcos/stock-cutting"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.120",
