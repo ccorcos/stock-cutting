@@ -78,6 +78,6 @@ npm publish
 ### To Do
 
 - [x] 1d solver
-- [ ] saw blade size
+- [x] saw blade size
 - [ ] multiple stock sizes optimization
 - [ ] 2d

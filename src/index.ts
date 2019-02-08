@@ -21,16 +21,29 @@ function isSubset(a: Array<number>, b: Array<number>) {
  * are there?
  */
 export function howManyWays(
-	size: number,
-	cuts: Array<number>,
+	args: {
+		size: number
+		bladeSize: number
+		cuts: Array<number>
+	},
 	state: Array<number> = []
 ): Array<Array<number>> {
+	const { size, bladeSize, cuts } = args
 	return _.uniqWith(
 		_.flatten(
 			cuts.map(cut => {
 				const remainder = size - cut
 				if (remainder >= 0) {
-					return howManyWays(remainder, cuts, [...state, cut])
+					return howManyWays(
+						{
+							// Subtract bladeSize after because we might have a
+							// perfect fit with the remainder.
+							size: remainder - bladeSize,
+							bladeSize: bladeSize,
+							cuts: cuts,
+						},
+						[...state, cut]
+					)
 				} else {
 					return [state]
 				}
@@ -47,13 +60,19 @@ type ResultCuts = Array<{ count: number; decimal: number; cuts: Array<number> }>
  * Given a stock side of wood you and buy, how many do I need and how do I cut it
  * in order to make enough pieces of with at the given sizes.
  */
-export function howToCutBoards1D(
-	stockSize: number,
+export function howToCutBoards1D(args: {
+	stockSize: number
+	bladeSize: number // AKA Kerf.
 	requiredCuts: RequiredCuts
-): ResultCuts {
+}): ResultCuts {
+	const { stockSize, bladeSize, requiredCuts } = args
 	const cutSizes = requiredCuts.map(({ size }) => size)
 
-	const waysOfCutting = howManyWays(stockSize, cutSizes)
+	const waysOfCutting = howManyWays({
+		size: stockSize,
+		cuts: cutSizes,
+		bladeSize: bladeSize,
+	})
 
 	// Transform [1,1,2,3] into {cut1: 2, cut2: 1, cut3: 3}.
 	// Each will be the different versions of cutting the stock board.
