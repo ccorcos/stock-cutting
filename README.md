@@ -79,5 +79,6 @@ npm publish
 
 - [x] 1d solver
 - [x] saw blade size
-- [ ] multiple stock sizes optimization
+- [x] multiple stock sizes optimization
 - [ ] 2d
+- [ ] multiple stock size cost

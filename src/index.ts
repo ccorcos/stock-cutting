@@ -54,49 +54,66 @@ export function howManyWays(
 }
 
 type RequiredCuts = Array<{ size: number; count: number }>
-type ResultCuts = Array<{ count: number; decimal: number; cuts: Array<number> }>
+type ResultCuts = Array<{
+	stockSize: number
+	count: number
+	decimal: number
+	cuts: Array<number>
+}>
 
 /**
  * Given a stock side of wood you and buy, how many do I need and how do I cut it
  * in order to make enough pieces of with at the given sizes.
  */
 export function howToCutBoards1D(args: {
-	stockSize: number
+	stockSizes: Array<number>
 	bladeSize: number // AKA Kerf.
 	requiredCuts: RequiredCuts
 }): ResultCuts {
-	const { stockSize, bladeSize, requiredCuts } = args
+	const { stockSizes, bladeSize, requiredCuts } = args
 	const cutSizes = requiredCuts.map(({ size }) => size)
 
-	const waysOfCutting = howManyWays({
-		size: stockSize,
-		cuts: cutSizes,
-		bladeSize: bladeSize,
-	})
+	const waysOfCuttingStocks = stockSizes.map(stockSize => {
+		const waysOfCutting = howManyWays({
+			size: stockSize,
+			cuts: cutSizes,
+			bladeSize: bladeSize,
+		})
 
-	// Transform [1,1,2,3] into {cut1: 2, cut2: 1, cut3: 3}.
-	// Each will be the different versions of cutting the stock board.
-	const stockVersions = waysOfCutting.map(way => {
-		const stockCut = {}
-		for (const cut of cutSizes) {
-			stockCut["cut" + cut] = 0
-		}
-		for (const cut of way) {
-			stockCut["cut" + cut] = stockCut["cut" + cut] + 1
-		}
-		// stockCut["remainder"] = stockSize - _.sum(way)
-		return stockCut
+		// Transform [1,1,2,3] into {cut1: 2, cut2: 1, cut3: 3}.
+		// Each will be the different versions of cutting the stock board.
+		const stockVersions = waysOfCutting.map(way => {
+			const stockCut = {}
+			for (const cut of cutSizes) {
+				stockCut["cut" + cut] = 0
+			}
+			for (const cut of way) {
+				stockCut["cut" + cut] = stockCut["cut" + cut] + 1
+			}
+			// stockCut["remainder"] = stockSize - _.sum(way)
+			return stockCut
+		})
+
+		return { stockSize, stockVersions, waysOfCutting }
 	})
 
 	// Create a variable for each version with a count: 1 which we will minimize.
-	const variables = stockVersions
-		.map((cut, index) => ({ ["version" + index]: { ...cut, count: 1 } }))
-		.reduce((acc, next) => ({ ...acc, ...next }))
+	const variables = _.flatten(
+		waysOfCuttingStocks.map(({ stockSize, stockVersions }) =>
+			stockVersions.map((cut, index) => ({
+				[stockSize + "version" + index]: { ...cut, count: 1 },
+			}))
+		)
+	).reduce((acc, next) => ({ ...acc, ...next }))
 
 	// We can't puchase part of a board, so the result but me an int, not a float.
-	const ints = stockVersions
-		.map((cut, index) => ({ ["version" + index]: 1 }))
-		.reduce((acc, next) => ({ ...acc, ...next }))
+	const ints = _.flatten(
+		waysOfCuttingStocks.map(({ stockSize, stockVersions }) =>
+			stockVersions.map((cut, index) => ({
+				[stockSize + "version" + index]: 1,
+			}))
+		)
+	).reduce((acc, next) => ({ ...acc, ...next }))
 
 	// Create constraints from the required cuts with a min on the count required.
 	const constraints = requiredCuts
@@ -125,19 +142,22 @@ export function howToCutBoards1D(args: {
 
 	const resultCuts: ResultCuts = []
 
-	for (let i = 0; i < waysOfCutting.length; i++) {
-		const number = results["version" + i]
-		if (number !== undefined && number > 0) {
-			// Need to take the ceiling because even though we're using integer mode,
-			// the final cuts will still have a remainder balance which computes to
-			// the remainder decimal. We'll store the raw decimal in there in case you
-			// want to use it somewhere else.
-			// https://github.com/JWally/jsLPSolver/issues/84
-			resultCuts.push({
-				count: Math.ceil(number),
-				decimal: number,
-				cuts: waysOfCutting[i],
-			})
+	for (const { stockSize, waysOfCutting } of waysOfCuttingStocks) {
+		for (let i = 0; i < waysOfCutting.length; i++) {
+			const number = results[stockSize + "version" + i]
+			if (number !== undefined && number > 0) {
+				// Need to take the ceiling because even though we're using integer mode,
+				// the final cuts will still have a remainder balance which computes to
+				// the remainder decimal. We'll store the raw decimal in there in case you
+				// want to use it somewhere else.
+				// https://github.com/JWally/jsLPSolver/issues/84
+				resultCuts.push({
+					stockSize: stockSize,
+					count: Math.ceil(number),
+					decimal: number,
+					cuts: waysOfCutting[i],
+				})
+			}
 		}
 	}
 
