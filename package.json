@@ -1,6 +1,6 @@
 {
   "name": "stock-cutting",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A program for solving the Stock Cutting Problem.",
   "main": "lib/index.js",
   "scripts": {
