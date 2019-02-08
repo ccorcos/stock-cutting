@@ -1,7 +1,7 @@
 {
-  "name": "typescript-boilerplate",
+  "name": "stock-cutting",
   "version": "1.0.0",
-  "description": "boilerplate for web applications using typescript and webpack",
+  "description": "A program for solving the Stock Cutting Problem.",
   "main": "lib/index.js",
   "scripts": {
     "build": "rm -rf lib && tsc",
@@ -10,8 +10,12 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "javascript-lp-solver": "^0.4.5",
+    "lodash": "^4.17.11"
+  },
   "devDependencies": {
+    "@types/lodash": "^4.14.120",
     "typescript": "^3.3.3"
   },
   "files": [
