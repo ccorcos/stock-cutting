@@ -1,0 +1,242 @@
+
+stock
+		{ size: [82, 76], cost: 61 }
+		{ size: [82, 36], cost: 31 }
+		{ size: [82, 24], cost: 21 }
+
+requirements
+[ { size: [ 14.25, 82 ], count: 4 },
+  { size: [ 24.25, 80 ], count: 2 },
+  { size: [ 14.25, 8 ], count: 4 },
+  { size: [ 24.25, 8 ], count: 2 } ]
+
+14.5*4 = 57 + 24.25
+24.25 + 57 = 81.25 (might not make it with cut size .125)
+24.25*2 = 48.5
+
+Hmm. We should be able to do this with two sheets!
+
+sanity check:
+  '76-82version7': 0.8,
+  '76-82version24': 0,
+  '76-82version26': 0.8,
+  '76-82version12': 1.2 }
+
+'76-82version7':
+{ 'cut14.25-82': 2,
+'cut14.25-8': 3,
+'cut24.25-80': 0,
+'cut24.25-8': 0,
+
+'76-82version24':
+{ 'cut14.25-82': 0,
+'cut14.25-8': 3,
+'cut24.25-80': 1,
+'cut24.25-8': 0,
+
+'76-82version26':
+{ 'cut14.25-82': 0,
+'cut14.25-8': 2,
+'cut24.25-80': 1,
+'cut24.25-8': 1,
+cost: 61 },
+
+'76-82version12':
+{ 'cut14.25-82': 2,
+'cut14.25-8': 0,
+'cut24.25-80': 1,
+'cut24.25-8': 1,
+
+'76-82version1':
+{ 'cut14.25-82': 4,
+'cut14.25-8': 1,
+'cut24.25-80': 0,
+'cut24.25-8': 0,
+cost: 61 },
+'76-82version2':
+{ 'cut14.25-82': 4,
+	'cut14.25-8': 0,
+	'cut24.25-80': 0,
+	'cut24.25-8': 1,
+
+	That's telling me there's an issue wiht the blade thing...
+	14.25*4 = 57
+	We should be able to get more than one 24.25-8 cut in...
+
+
+
+
+
+
+	ok HEre's version 1 tree pulled out
+'76-82version1':
+{ 'cut14.25-82': 4,
+'cut14.25-8': 1,
+'cut24.25-80': 0,
+'cut24.25-8': 0,
+cost: 61 },
+
+
+	{
+        "size": [
+          82,
+          76
+        ],
+        "pieces": [
+          {
+            "size": [
+              14.25,
+              82
+            ]
+          },
+          {
+            "size": [
+              82,
+              61.625
+            ],
+            "pieces": [
+              {
+                "size": [
+                  14.25,
+                  82
+                ]
+              },
+              {
+                "size": [
+                  82,
+                  47.25
+                ],
+                "pieces": [
+                  {
+                    "size": [
+                      14.25,
+                      82
+                    ]
+                  },
+                  {
+                    "size": [
+                      82,
+                      32.875
+                    ],
+                    "pieces": [
+                      {
+                        "size": [
+                          14.25,
+                          82
+                        ]
+                      },
+                      {
+                        "size": [
+                          82,
+                          18.5
+                        ],
+                        "pieces": [
+                          {
+                            "size": [
+                              82,
+                              14.25
+                            ],
+														// HERE. What happened?! Floating point error?
+                            "pieces": [
+                              {
+                                "size": [
+                                  14.25,
+                                  8
+                                ]
+                              },
+                              {
+                                "size": [
+                                  14.25,
+                                  6.125
+                                ]
+                              },
+                              {
+                                "size": [
+                                  67.625,
+                                  8
+                                ]
+                              },
+                              {
+                                "size": [
+                                  67.625,
+                                  6.125
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "size": [
+                              82,
+                              4.125
+                            ]
+                          },
+                          {
+                            "size": [
+                              0,
+                              0
+                            ]
+                          },
+                          {
+                            "size": [
+                              0,
+                              0
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "size": [
+                          0,
+                          0
+                        ]
+                      },
+                      {
+                        "size": [
+                          0,
+                          0
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "size": [
+                      0,
+                      0
+                    ]
+                  },
+                  {
+                    "size": [
+                      0,
+                      0
+                    ]
+                  }
+                ]
+              },
+              {
+                "size": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "size": [
+                  0,
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "size": [
+              0,
+              0
+            ]
+          },
+          {
+            "size": [
+              0,
+              0
+            ]
+          }
+        ]
+      },
