@@ -3,8 +3,7 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"target": "es5",
-		"module": "es2015",
-		"jsx": "preserve",
+		"module": "commonjs",
 		"moduleResolution": "node",
 		"noImplicitAny": false,
 		"noUnusedLocals": false,
@@ -13,7 +12,7 @@
 		"strictNullChecks": false,
 		"preserveConstEnums": true,
 		"sourceMap": true,
-		"lib": ["es2015", "es2016", "dom"],
+		"lib": ["es2015", "es2016"],
 		"outDir": "lib",
 		"declaration": true
 	},
