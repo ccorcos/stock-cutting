@@ -53,9 +53,12 @@ export function howManyWays(
 	)
 }
 
+type StockSize = { size: number; cost: number }
+
 type RequiredCuts = Array<{ size: number; count: number }>
+
 type ResultCuts = Array<{
-	stockSize: number
+	stock: StockSize
 	count: number
 	decimal: number
 	cuts: Array<number>
@@ -66,23 +69,23 @@ type ResultCuts = Array<{
  * in order to make enough pieces of with at the given sizes.
  */
 export function howToCutBoards1D(args: {
-	stockSizes: Array<number>
+	stockSizes: Array<StockSize>
 	bladeSize: number // AKA Kerf.
 	requiredCuts: RequiredCuts
 }): ResultCuts {
 	const { stockSizes, bladeSize, requiredCuts } = args
 	const cutSizes = requiredCuts.map(({ size }) => size)
 
-	const waysOfCuttingStocks = stockSizes.map(stockSize => {
+	const waysOfCuttingStocks = stockSizes.map(({ size, cost }) => {
 		const waysOfCutting = howManyWays({
-			size: stockSize,
+			size: size,
 			cuts: cutSizes,
 			bladeSize: bladeSize,
 		})
 
 		// Transform [1,1,2,3] into {cut1: 2, cut2: 1, cut3: 3}.
 		// Each will be the different versions of cutting the stock board.
-		const stockVersions = waysOfCutting.map(way => {
+		const versions = waysOfCutting.map(way => {
 			const stockCut = {}
 			for (const cut of cutSizes) {
 				stockCut["cut" + cut] = 0
@@ -94,23 +97,23 @@ export function howToCutBoards1D(args: {
 			return stockCut
 		})
 
-		return { stockSize, stockVersions, waysOfCutting }
+		return { size, cost, versions, waysOfCutting }
 	})
 
 	// Create a variable for each version with a count: 1 which we will minimize.
 	const variables = _.flatten(
-		waysOfCuttingStocks.map(({ stockSize, stockVersions }) =>
-			stockVersions.map((cut, index) => ({
-				[stockSize + "version" + index]: { ...cut, count: 1 },
+		waysOfCuttingStocks.map(({ size, cost, versions }) =>
+			versions.map((cut, index) => ({
+				[size + "version" + index]: { ...cut, cost: cost },
 			}))
 		)
 	).reduce((acc, next) => ({ ...acc, ...next }))
 
 	// We can't puchase part of a board, so the result but me an int, not a float.
 	const ints = _.flatten(
-		waysOfCuttingStocks.map(({ stockSize, stockVersions }) =>
-			stockVersions.map((cut, index) => ({
-				[stockSize + "version" + index]: 1,
+		waysOfCuttingStocks.map(({ size, versions }) =>
+			versions.map((cut, index) => ({
+				[size + "version" + index]: 1,
 			}))
 		)
 	).reduce((acc, next) => ({ ...acc, ...next }))
@@ -123,7 +126,7 @@ export function howToCutBoards1D(args: {
 	// Create out model for the simplex linear programming solver.
 	// https://github.com/JWally/jsLPSolver
 	const model = {
-		optimize: "count",
+		optimize: "cost",
 		opType: "min",
 		variables: variables,
 		int: ints,
@@ -142,9 +145,9 @@ export function howToCutBoards1D(args: {
 
 	const resultCuts: ResultCuts = []
 
-	for (const { stockSize, waysOfCutting } of waysOfCuttingStocks) {
+	for (const { size, cost, waysOfCutting } of waysOfCuttingStocks) {
 		for (let i = 0; i < waysOfCutting.length; i++) {
-			const number = results[stockSize + "version" + i]
+			const number = results[size + "version" + i]
 			if (number !== undefined && number > 0) {
 				// Need to take the ceiling because even though we're using integer mode,
 				// the final cuts will still have a remainder balance which computes to
@@ -152,7 +155,7 @@ export function howToCutBoards1D(args: {
 				// want to use it somewhere else.
 				// https://github.com/JWally/jsLPSolver/issues/84
 				resultCuts.push({
-					stockSize: stockSize,
+					stock: { size, cost },
 					count: Math.ceil(number),
 					decimal: number,
 					cuts: waysOfCutting[i],
