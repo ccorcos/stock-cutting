@@ -4,7 +4,7 @@ This program will help you figure out how much wood you need to buy from the sto
 
 ## How it works
 
-I'm going to steal some numbers from pa real project of mine](https://github.com/ccorcos/couch).
+I'm going to steal some numbers from a real project of mine](https://github.com/ccorcos/couch).
 
 Suppose you need the following pieces of wood (size in inches).
 
@@ -74,11 +74,3 @@ npm run build
 npm version major
 npm publish
 ```
-
-### To Do
-
-- [x] 1d solver
-- [x] saw blade size
-- [x] multiple stock sizes optimization
-- [ ] 2d
-- [ ] multiple stock size cost

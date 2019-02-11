@@ -1,6 +1,23 @@
 import * as _ from "lodash"
 import * as solver from "javascript-lp-solver/src/solver"
 
+function memoize<I extends any[], O, K>(
+	fn: (...args: I) => O,
+	makeKey: (...args: I) => K
+) {
+	const cache: Map<K, O> = new Map()
+	return (...args: I): O => {
+		const key = makeKey(...args)
+		if (cache.has(key)) {
+			return cache.get(key)
+		} else {
+			const result = fn(...args)
+			cache.set(key, result)
+			return result
+		}
+	}
+}
+
 export type StockSize2D = { size: [number, number]; cost: number }
 
 export type RequiredCuts2D = Array<{
@@ -45,65 +62,68 @@ export function boundsCheck({ size }: CutTreeLeaf2D): CutTreeLeaf2D {
 	}
 }
 
-export function cut2D(
-	bigger: [number, number],
-	smaller: [number, number],
-	bladeSize: number
-): CutTree2D {
-	if (isEqual2D(bigger, smaller)) {
-		return { size: smaller }
-	} else if (bigger[0] >= smaller[0] && bigger[1] >= smaller[1]) {
-		return {
-			size: bigger,
-			pieces: [
-				// topLeft
-				boundsCheck({ size: smaller }) as CutTreeNode2D,
-				// bottomLeft
-				boundsCheck({
-					size: [smaller[0], bigger[1] - smaller[1] - bladeSize],
-				}) as CutTreeNode2D,
-				// topRight
-				boundsCheck({
-					size: [bigger[0] - smaller[0] - bladeSize, smaller[1]],
-				}) as CutTreeNode2D,
-				// bottomRight
-				boundsCheck({
-					size: [
-						bigger[0] - smaller[0] - bladeSize,
-						bigger[1] - smaller[1] - bladeSize,
-					],
-				}) as CutTreeNode2D,
-			],
+export const cut2D = memoize(
+	(
+		bigger: [number, number],
+		smaller: [number, number],
+		bladeSize: number
+	): CutTree2D => {
+		if (isEqual2D(bigger, smaller)) {
+			return { size: smaller }
+		} else if (bigger[0] >= smaller[0] && bigger[1] >= smaller[1]) {
+			return {
+				size: bigger,
+				pieces: [
+					// topLeft
+					boundsCheck({ size: smaller }) as CutTreeNode2D,
+					// bottomLeft
+					boundsCheck({
+						size: [smaller[0], bigger[1] - smaller[1] - bladeSize],
+					}) as CutTreeNode2D,
+					// topRight
+					boundsCheck({
+						size: [bigger[0] - smaller[0] - bladeSize, smaller[1]],
+					}) as CutTreeNode2D,
+					// bottomRight
+					boundsCheck({
+						size: [
+							bigger[0] - smaller[0] - bladeSize,
+							bigger[1] - smaller[1] - bladeSize,
+						],
+					}) as CutTreeNode2D,
+				],
+			}
+		} else if (bigger[1] >= smaller[0] && bigger[0] >= smaller[1]) {
+			// Rotate the smaller board and cut it that way.
+			const smallerT = [smaller[1], smaller[0]] as [number, number]
+			return {
+				size: bigger,
+				pieces: [
+					// topLeft
+					boundsCheck({ size: smallerT }) as CutTreeNode2D,
+					// bottomLeft
+					boundsCheck({
+						size: [smallerT[0], bigger[1] - smallerT[1] - bladeSize],
+					}) as CutTreeNode2D,
+					// topRight
+					boundsCheck({
+						size: [bigger[0] - smallerT[0] - bladeSize, smallerT[1]],
+					}) as CutTreeNode2D,
+					// bottomRight
+					boundsCheck({
+						size: [
+							bigger[0] - smallerT[0] - bladeSize,
+							bigger[1] - smallerT[1] - bladeSize,
+						],
+					}) as CutTreeNode2D,
+				],
+			}
+		} else {
+			return { size: bigger }
 		}
-	} else if (bigger[1] >= smaller[0] && bigger[0] >= smaller[1]) {
-		// Rotate the smaller board and cut it that way.
-		const smallerT = [smaller[1], smaller[0]] as [number, number]
-		return {
-			size: bigger,
-			pieces: [
-				// topLeft
-				boundsCheck({ size: smallerT }) as CutTreeNode2D,
-				// bottomLeft
-				boundsCheck({
-					size: [smallerT[0], bigger[1] - smallerT[1] - bladeSize],
-				}) as CutTreeNode2D,
-				// topRight
-				boundsCheck({
-					size: [bigger[0] - smallerT[0] - bladeSize, smallerT[1]],
-				}) as CutTreeNode2D,
-				// bottomRight
-				boundsCheck({
-					size: [
-						bigger[0] - smallerT[0] - bladeSize,
-						bigger[1] - smallerT[1] - bladeSize,
-					],
-				}) as CutTreeNode2D,
-			],
-		}
-	} else {
-		return { size: bigger }
-	}
-}
+	},
+	(bigger, smaller) => [bigger.sort(), smaller.sort()].toString()
+)
 
 export function permute<T>(values: Array<Array<T>>): Array<Array<T>> {
 	if (values.length === 1) {
@@ -116,16 +136,23 @@ export function permute<T>(values: Array<Array<T>>): Array<Array<T>> {
 	}
 }
 
-export const getLeaves = (tree: CutTree2D): Array<[number, number]> => {
-	if (!tree.pieces) {
-		return [tree.size]
-	}
-	return _.flatten(tree.pieces.map(getLeaves))
-}
+export const getLeaves = memoize(
+	(tree: CutTree2D): Array<[number, number]> => {
+		if (!tree.pieces) {
+			return [tree.size]
+		}
+		return _.flatten(tree.pieces.map(getLeaves))
+	},
+	tree => tree
+)
 
-const getLeafCuts = (tree: CutTree2D, cuts: Array<[number, number]>) => {
-	return getLeaves(tree).filter(n => cuts.some(m => isEqual2D(n, m)))
-}
+const getLeafCuts = memoize(
+	(tree: CutTree2D, cuts: Array<[number, number]>) => {
+		return getLeaves(tree).filter(n => cuts.some(m => isEqual2D(n, m)))
+	},
+	// WARNING: dropping cuts because it will always be the same.
+	tree => tree
+)
 
 export const isEqual2D = (
 	[x, y]: [number, number],
@@ -134,70 +161,100 @@ export const isEqual2D = (
 	return (x === n && m === y) || (x === m && n === y)
 }
 
+// HERE: this is where all the time is spent. Doing the uniq thing.
 function isSubset2D(a: Array<[number, number]>, b: Array<[number, number]>) {
-	const a2 = [...a]
-	for (const n of b) {
-		const i = a2.findIndex(m => isEqual2D(n, m))
-		if (i !== -1) {
-			a2.splice(i, 1)
-			if (a2.length === 0) {
-				return true
-			}
+	if (a.length > b.length) {
+		return false
+	}
+	const bMap = {}
+	for (const elm of b) {
+		if (!(elm[0] in bMap)) {
+			bMap[elm[0]] = {}
+		}
+		if (elm[1] in bMap[elm[0]]) {
+			bMap[elm[0]][elm[1]] = bMap[elm[0]][elm[1]] + 1
+		} else {
+			bMap[elm[0]][elm[1]] = 1
 		}
 	}
-	return a2.length === 0
+
+	for (const [x, y] of a) {
+		if (!bMap[x]) {
+			return false
+		}
+		if (!bMap[x][y]) {
+			return false
+		}
+		bMap[x][y] = bMap[x][y] - 1
+		if (bMap[x][y] < 0) {
+			return false
+		}
+	}
+	return true
+
+	// const a2 = [...a]
+	// for (const n of b) {
+	// 	const i = a2.findIndex(m => isEqual2D(n, m))
+	// 	if (i !== -1) {
+	// 		a2.splice(i, 1)
+	// 		if (a2.length === 0) {
+	// 			return true
+	// 		}
+	// 	}
+	// }
+	// return a2.length === 0
 }
 
-export const howManyWays2D = (args: {
-	size: [number, number]
-	bladeSize: number
-	cuts: Array<[number, number]>
-}): Array<CutTree2D> => {
-	// console.log("howManyWays2D", args.size)
-	const { size, bladeSize, cuts } = args
-	const cutTrees = _.flatten(
-		cuts.map(piece => {
-			const tree = cut2D(size, piece, bladeSize)
-			if (!tree.pieces) {
-				return [tree]
-			}
+export const howManyWays2D = memoize(
+	(args: {
+		size: [number, number]
+		bladeSize: number
+		cuts: Array<[number, number]>
+	}): Array<CutTree2D> => {
+		const { size, bladeSize, cuts } = args
+		const cutTrees = _.flatten(
+			cuts.map(piece => {
+				// TODO: we need to prune some results that we are pretty sure
+				// are going to be bad. We want efficient cuts.
+				// Maybe start with the large pieces first?
+				// We should be able to solve this more realistically by using the big
+				// pieces and moving on to the smaller ones when we need to.
+				const tree = cut2D(size, piece, bladeSize)
+				if (!tree.pieces) {
+					return [tree]
+				}
 
-			// How many ways to cut each child.
-			const childCuts = tree.pieces.map(child => {
-				// console.log("cut child", child.size)
-				const childCuts = howManyWays2D({
-					size: child.size,
-					bladeSize: bladeSize,
-					cuts: cuts,
+				// How many ways to cut each child.
+				const childCuts = tree.pieces.map(child => {
+					const childCuts = howManyWays2D({
+						size: child.size,
+						bladeSize: bladeSize,
+						cuts: cuts,
+					})
+					return childCuts
 				})
-				// console.log("child cuts", childCuts)
-				return childCuts
+
+				// Permute through all was of cutting the children.
+				const cutOptions = permute(childCuts).map(
+					pieces =>
+						({
+							size: tree.size,
+							pieces: pieces,
+						} as CutTree2D)
+				)
+				return cutOptions
 			})
+		)
 
-			// console.log("waysOfCuttingEachChild", childCuts)
-
-			// Permute through all was of cutting the children.
-			const cutOptions = permute(childCuts).map(
-				pieces =>
-					({
-						size: tree.size,
-						pieces: pieces,
-					} as CutTree2D)
-			)
-			// console.log("cutOptions", cutOptions)
-			return cutOptions
-		})
-	)
-
-	// console.log("cutTrees", JSON.stringify(cutTrees, null, 2))
-
-	return _.uniqWith(
-		cutTrees,
-		(x, y) =>
-			isSubset2D(getLeaves(x), getLeaves(y)) ||
-			isSubset2D(getLeaves(y), getLeaves(x))
-	)
-}
+		return _.uniqWith(
+			cutTrees,
+			(x, y) =>
+				isSubset2D(getLeaves(x), getLeaves(y)) ||
+				isSubset2D(getLeaves(y), getLeaves(x))
+		)
+	},
+	({ size }) => size.sort().toString()
+)
 
 export function howToCutBoards2D(args: {
 	stockSizes: Array<StockSize2D>
@@ -231,11 +288,6 @@ export function howToCutBoards2D(args: {
 
 		return { size, cost, versions, waysOfCutting }
 	})
-
-	console.log(
-		"waysOfCuttingStocks",
-		JSON.stringify(waysOfCuttingStocks, null, 2)
-	)
 
 	// Create a variable for each version with a count: 1 which we will minimize.
 	const variables = _.flatten(
@@ -274,9 +326,6 @@ export function howToCutBoards2D(args: {
 
 	// Run the program
 	const results = solver.Solve(model)
-
-	console.log(model)
-	console.log(results)
 
 	if (!results.feasible) {
 		throw new Error("Didn't work")
