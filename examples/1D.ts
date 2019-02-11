@@ -5,6 +5,9 @@ function print(obj: any) {
 	console.log(util.inspect(obj, false, null, true))
 }
 
+// Some numbers from a real project:
+// https://github.com/ccorcos/couch
+
 const bladeSize = 0.125
 const stockSizes = [{ size: 12 * 8, cost: 1 }, { size: 12 * 2, cost: 1 / 4 }]
 
