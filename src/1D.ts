@@ -1,5 +1,6 @@
 import * as _ from "lodash"
 import * as solver from "javascript-lp-solver/src/solver"
+import * as util from "util"
 
 export type StockSize1D = { size: number; cost: number }
 
@@ -40,28 +41,41 @@ export function howManyWays1D(
 	state: Array<number> = []
 ): Array<Array<number>> {
 	const { size, bladeSize, cuts } = args
-	return _.uniqWith(
-		_.flatten(
-			cuts.map(cut => {
-				const remainder = size - cut
-				if (remainder >= 0) {
-					return howManyWays1D(
-						{
-							// Subtract bladeSize after because we might have a
-							// perfect fit with the remainder.
-							size: remainder - bladeSize,
-							bladeSize: bladeSize,
-							cuts: cuts,
-						},
-						[...state, cut]
-					)
-				} else {
-					return [state]
-				}
-			})
-		),
-		(x, y) => isSubset(x, y) || isSubset(y, x)
+	const waysToCut = _.flatten(
+		cuts.map(cut => {
+			const remainder = size - cut
+			if (remainder >= 0) {
+				return howManyWays1D(
+					{
+						// Subtract bladeSize after because we might have a
+						// perfect fit with the remainder.
+						size: remainder - bladeSize,
+						bladeSize: bladeSize,
+						cuts: cuts,
+					},
+					[...state, cut]
+				)
+			} else {
+				return [state]
+			}
+		})
 	)
+
+	let results: Array<Array<number>> = []
+	for (const wayToCut of waysToCut) {
+		// If existing cuts that are a subset of the new way to cut.
+		results = results.filter(
+			existingWayToCut => !isSubset(existingWayToCut, wayToCut)
+		)
+		// Add new way to cut if it is not a subset of an existing cut.
+		const isSubsetOfExistingCut = results.some(existingWayToCut =>
+			isSubset(wayToCut, existingWayToCut)
+		)
+		if (!isSubsetOfExistingCut) {
+			results.push(wayToCut)
+		}
+	}
+	return results
 }
 
 /**
@@ -99,6 +113,8 @@ export function howToCutBoards1D(args: {
 
 		return { size, cost, versions, waysOfCutting }
 	})
+
+	// console.log(util.inspect(waysOfCuttingStocks, false, null))
 
 	// Create a variable for each version with a count: 1 which we will minimize.
 	const variables = _.flatten(
