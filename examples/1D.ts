@@ -1,4 +1,4 @@
-import { howToCutBoards1D } from "../src/1D"
+import { howToCutBoards1D } from "stock-cutting"
 import * as util from "util"
 
 function print(obj: any) {
