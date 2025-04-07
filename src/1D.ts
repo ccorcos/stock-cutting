@@ -1,6 +1,5 @@
-import * as _ from "lodash"
-import * as solver from "javascript-lp-solver/src/solver"
-import * as util from "util"
+import * as solver from "javascript-lp-solver/src/solver";
+import * as _ from "lodash";
 
 export type StockSize1D = { size: number; cost: number }
 
@@ -9,7 +8,6 @@ export type RequiredCuts1D = Array<{ size: number; count: number }>
 export type ResultCuts1D = Array<{
 	stock: StockSize1D
 	count: number
-	decimal: number
 	cuts: Array<number>
 }>
 
@@ -145,7 +143,7 @@ export function howToCutBoards1D(args: {
 		optimize: "cost",
 		opType: "min",
 		variables: variables,
-		int: ints,
+		ints: ints,
 		constraints: constraints,
 	}
 
@@ -165,15 +163,9 @@ export function howToCutBoards1D(args: {
 		for (let i = 0; i < waysOfCutting.length; i++) {
 			const number = results[size + "version" + i]
 			if (number !== undefined && number > 0) {
-				// Need to take the ceiling because even though we're using integer mode,
-				// the final cuts will still have a remainder balance which computes to
-				// the remainder decimal. We'll store the raw decimal in there in case you
-				// want to use it somewhere else.
-				// https://github.com/JWally/jsLPSolver/issues/84
 				resultCuts.push({
 					stock: { size, cost },
-					count: Math.ceil(number),
-					decimal: number,
+					count: number,
 					cuts: waysOfCutting[i],
 				})
 			}
